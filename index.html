@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NRI Cost of Living Dashboard | Rupee Stories</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #faf6ed;
+    --cream-dark: #f0e9d6;
+    --cream-darker: #e8dfc3;
+    --navy: #1a2e4a;
+    --navy-deep: #0f1d33;
+    --navy-soft: #2a4060;
+    --gold: #b8932f;
+    --gold-soft: #d4b260;
+    --gold-pale: #ede0bd;
+    --gold-paler: #f5ecd0;
+    --rust: #b5432a;
+    --green: #3a6b4a;
+    --text: #2a2a2a;
+    --text-soft: #5a5a5a;
+    --text-faint: #8a8a8a;
+    --border: #d8cfb8;
+    --border-light: #e5dec5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    line-height: 1.55;
+    min-height: 100vh;
+    padding: 1.5rem 1rem;
+    font-size: 14px;
+  }
+
+  .container { max-width: 1280px; margin: 0 auto; }
+
+  /* HEADER — only the brand title is serif. Everything else is sans. */
+  header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  .tagline {
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    max-width: 480px;
+    text-align: right;
+  }
+
+  @media (max-width: 700px) {
+    .tagline { text-align: left; }
+  }
+
+  /* ASSUMPTION BANNER */
+  .assumption-banner {
+    background: var(--navy);
+    color: var(--cream);
+    padding: 0.7rem 1.25rem;
+    border-radius: 3px;
+    margin-bottom: 1.25rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .assumption-banner .pill {
+    background: var(--gold);
+    color: white;
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  /* CONTROLS */
+  .controls {
+    background: white; border: 1px solid var(--border); border-radius: 3px;
+    padding: 1.1rem 1.25rem; margin-bottom: 1.25rem;
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 1.25rem; align-items: start;
+  }
+  @media (max-width: 950px) { .controls { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 600px) { .controls { grid-template-columns: 1fr; } }
+
+  .control-group label {
+    display: block; font-size: 0.65rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-soft); margin-bottom: 0.5rem;
+  }
+
+  .tier-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.3rem; }
+  .tier-btn {
+    padding: 0.45rem 0.3rem; border: 1px solid var(--border);
+    background: var(--cream); color: var(--navy);
+    font-family: inherit; font-size: 0.78rem; font-weight: 500;
+    cursor: pointer; border-radius: 2px; transition: all 0.12s;
+    text-align: center;
+  }
+  .tier-btn:hover { border-color: var(--gold); }
+  .tier-btn.active { background: var(--navy); color: var(--cream); border-color: var(--navy); }
+  .tier-btn small {
+    display: block; font-size: 0.6rem; opacity: 0.65;
+    font-weight: 400; margin-top: 0.15rem;
+  }
+
+  .filter-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.3rem; }
+  .filter-btn {
+    padding: 0.45rem 0.3rem; border: 1px solid var(--border);
+    background: var(--cream); color: var(--navy);
+    font-family: inherit; font-size: 0.76rem; font-weight: 500;
+    cursor: pointer; border-radius: 2px; transition: all 0.12s;
+  }
+  .filter-btn:hover { border-color: var(--gold); }
+  .filter-btn.active { background: var(--gold); color: white; border-color: var(--gold); }
+
+  /* SLIDERS — replace plain number inputs with slider+count */
+  .slider-group { display: flex; flex-direction: column; gap: 0.3rem; }
+  .slider-row {
+    display: flex; align-items: center; gap: 0.65rem;
+  }
+  .slider-row input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none; appearance: none;
+    height: 4px; background: var(--cream-dark);
+    border-radius: 2px; outline: none;
+    cursor: pointer;
+  }
+  .slider-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%; background: var(--gold);
+    border: 2px solid white; cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .slider-row input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%; background: var(--gold);
+    border: 2px solid white; cursor: pointer;
+  }
+  .slider-row .count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--navy);
+    min-width: 1.5rem;
+    text-align: right;
+  }
+  .slider-hint {
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    line-height: 1.4;
+  }
+
+  /* INSIGHT CARDS */
+  .insights {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0.85rem; margin-bottom: 1.25rem;
+  }
+  @media (max-width: 800px) { .insights { grid-template-columns: repeat(2, 1fr); } }
+
+  .insight {
+    background: white; border: 1px solid var(--border);
+    padding: 0.9rem 1rem; border-radius: 3px;
+    position: relative; overflow: hidden;
+  }
+  .insight::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 3px; height: 100%; background: var(--gold);
+  }
+  .insight.cheap::before { background: var(--green); }
+  .insight.expensive::before { background: var(--rust); }
+  .insight.value::before { background: var(--gold); }
+  .insight.school::before { background: var(--navy); }
+
+  .insight-label {
+    font-size: 0.6rem; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--text-faint);
+    margin-bottom: 0.35rem; font-weight: 600;
+  }
+  .insight-city {
+    font-size: 1.2rem; font-weight: 700; color: var(--navy);
+    line-height: 1.1; margin-bottom: 0.25rem;
+    letter-spacing: -0.01em;
+  }
+  .insight-value {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem;
+    color: var(--text-soft); font-weight: 500;
+  }
+  .insight-rule {
+    font-size: 0.66rem; color: var(--text-faint);
+    margin-top: 0.3rem; line-height: 1.35;
+  }
+
+  /* TABLE */
+  .table-wrap {
+    background: white; border: 1px solid var(--border); border-radius: 3px;
+    overflow: hidden; margin-bottom: 1.25rem;
+  }
+  .table-header {
+    padding: 0.75rem 1.25rem; background: var(--navy); color: var(--cream);
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 0.5rem;
+  }
+  .table-header h2 {
+    font-size: 0.95rem; font-weight: 600; margin: 0;
+    letter-spacing: 0.01em;
+  }
+  .table-header-meta {
+    font-size: 0.72rem; color: var(--gold-soft);
+    letter-spacing: 0.02em;
+  }
+  .table-scroll { overflow-x: auto; }
+
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.82rem; min-width: 900px;
+  }
+  thead th {
+    background: var(--cream-dark); padding: 0.65rem 0.75rem;
+    text-align: right; font-weight: 600; font-size: 0.62rem;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--navy); border-bottom: 1px solid var(--gold);
+    cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  thead th:first-child, thead th.left { text-align: left; }
+  thead th .unit {
+    display: block; font-size: 0.58rem;
+    color: var(--text-faint); font-weight: 500;
+    text-transform: lowercase; letter-spacing: 0;
+    margin-top: 0.15rem;
+  }
+  thead th:hover { background: var(--cream-darker); }
+  thead th.sorted { color: var(--gold); }
+  thead th.sorted::after { content: '▾'; margin-left: 0.25rem; font-size: 0.65rem; }
+  thead th.sorted.asc::after { content: '▴'; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.12s; cursor: pointer;
+  }
+  tbody tr:hover { background: var(--gold-paler); }
+  tbody tr.expanded { background: var(--cream-dark); }
+
+  tbody td {
+    padding: 0.55rem 0.75rem; text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; color: var(--text); white-space: nowrap;
+  }
+  tbody td.left {
+    text-align: left; font-family: inherit;
+    font-size: 0.85rem; font-weight: 500; color: var(--navy);
+    display: flex; align-items: center; gap: 0.35rem;
+  }
+  tbody td .chevron {
+    color: var(--text-faint);
+    font-size: 0.7rem;
+    transition: transform 0.15s;
+    width: 10px;
+    display: inline-block;
+  }
+  tbody tr.expanded td .chevron { transform: rotate(90deg); color: var(--gold); }
+  tbody td .city-name { font-weight: 600; }
+  tbody td .details-hint {
+    font-size: 0.62rem;
+    color: var(--text-faint);
+    margin-left: auto;
+    padding-left: 0.5rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  tbody tr:hover td .details-hint { color: var(--gold); }
+  tbody tr.expanded td .details-hint { color: var(--gold); }
+  tbody td .tier-badge {
+    display: inline-block; font-size: 0.58rem;
+    padding: 1px 5px; margin-left: 0.3rem;
+    border-radius: 2px; font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .tier-badge.t1 { background: var(--navy); color: var(--cream); }
+  .tier-badge.t2 { background: var(--gold-pale); color: var(--navy); }
+
+  tbody td.total {
+    font-weight: 700; color: var(--navy); background: var(--cream);
+  }
+  tbody tr.expanded td.total { background: var(--gold-pale); }
+  tbody tr.cheapest td.total { color: var(--green); }
+  tbody tr.priciest td.total { color: var(--rust); }
+
+  tr.detail-row { background: var(--cream-dark); }
+  tr.detail-row td { padding: 0; background: var(--cream-dark); }
+
+  .detail-content {
+    padding: 1.1rem 1.5rem;
+    display: grid; grid-template-columns: 1.3fr 1fr;
+    gap: 1.5rem; text-align: left;
+  }
+  @media (max-width: 800px) { .detail-content { grid-template-columns: 1fr; } }
+
+  .detail-content h3 {
+    font-size: 1.15rem; color: var(--navy);
+    margin-bottom: 0.3rem; font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .detail-content .city-tagline {
+    font-style: italic; color: var(--text-soft);
+    font-size: 0.85rem; margin-bottom: 0.85rem;
+  }
+  .detail-fact { margin-bottom: 0.55rem; font-size: 0.82rem; line-height: 1.5; }
+  .detail-fact strong {
+    display: inline-block; min-width: 95px;
+    color: var(--navy); font-weight: 600;
+    font-size: 0.66rem; text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .detail-cta {
+    display: inline-block; margin-top: 0.85rem;
+    background: var(--gold); color: white;
+    padding: 0.55rem 1rem; border-radius: 2px;
+    text-decoration: none; font-weight: 600;
+    font-size: 0.78rem; letter-spacing: 0.02em;
+    transition: background 0.12s;
+  }
+  .detail-cta:hover { background: var(--navy); }
+  .detail-cta::after { content: ' →'; }
+
+  .detail-bars {
+    background: white; padding: 1rem 1.1rem;
+    border: 1px solid var(--border); border-radius: 3px;
+  }
+  .bar-row { margin-bottom: 0.55rem; }
+  .bar-row:last-child { margin-bottom: 0; }
+  .bar-label {
+    display: flex; justify-content: space-between;
+    font-size: 0.72rem; margin-bottom: 0.18rem;
+  }
+  .bar-label .name { color: var(--text-soft); }
+  .bar-label .val {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--navy); font-weight: 500;
+  }
+  .bar-track {
+    height: 5px; background: var(--cream-dark);
+    border-radius: 2px; overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold-soft), var(--gold));
+    border-radius: 2px; transition: width 0.25s;
+  }
+
+  /* CHART */
+  .chart-section {
+    background: white; border: 1px solid var(--border); border-radius: 3px;
+    padding: 1.1rem 1.25rem; margin-bottom: 1.25rem;
+  }
+  .chart-section h2 {
+    font-size: 0.95rem; color: var(--navy);
+    margin-bottom: 0.2rem; font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .chart-sub {
+    font-size: 0.75rem; color: var(--text-soft);
+    margin-bottom: 0.85rem;
+  }
+  #city-chart { width: 100%; height: auto; }
+
+  /* SETUP COST CALLOUT */
+  .setup-callout {
+    background: linear-gradient(135deg, var(--rust) 0%, #8a3520 100%);
+    color: var(--cream); padding: 1.25rem 1.5rem;
+    border-radius: 3px; margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+  }
+  .setup-callout::before {
+    content: ''; position: absolute;
+    top: -30%; right: -10%;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  }
+  .setup-callout-label {
+    font-size: 0.62rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--gold-soft);
+    font-weight: 600; margin-bottom: 0.4rem;
+    position: relative; z-index: 1;
+  }
+  .setup-callout h3 {
+    font-size: 1.2rem; font-weight: 700;
+    margin-bottom: 0.4rem; color: white;
+    position: relative; z-index: 1;
+    letter-spacing: -0.01em;
+  }
+  .setup-callout p {
+    font-size: 0.82rem; line-height: 1.55;
+    color: var(--cream); opacity: 0.92;
+    margin-bottom: 0.3rem;
+    position: relative; z-index: 1;
+  }
+  .setup-callout p strong { color: white; opacity: 1; font-weight: 600; }
+  .setup-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0.6rem; margin-top: 0.85rem;
+    position: relative; z-index: 1;
+  }
+  @media (max-width: 700px) { .setup-grid { grid-template-columns: repeat(2, 1fr); } }
+  .setup-item {
+    background: rgba(255,255,255,0.08); padding: 0.6rem 0.75rem;
+    border-radius: 2px; border-left: 2px solid var(--gold-soft);
+  }
+  .setup-item.total {
+    grid-column: span 4;
+    background: rgba(255,255,255,0.18);
+    border-left-color: white;
+  }
+  @media (max-width: 700px) { .setup-item.total { grid-column: span 2; } }
+  .setup-item-label {
+    font-size: 0.58rem; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--gold-soft);
+    margin-bottom: 0.18rem; font-weight: 600;
+  }
+  .setup-item.total .setup-item-label { color: white; }
+  .setup-item-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; color: white; font-weight: 500;
+  }
+  .setup-item.total .setup-item-value { font-size: 0.95rem; }
+
+  /* METHODOLOGY */
+  .methodology {
+    background: var(--cream-dark); border: 1px solid var(--border);
+    border-radius: 3px; padding: 1.1rem 1.4rem; margin-bottom: 1.25rem;
+  }
+  .methodology h3 {
+    font-size: 0.85rem; color: var(--navy);
+    margin-bottom: 0.6rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .methodology p {
+    font-size: 0.78rem; color: var(--text-soft);
+    line-height: 1.65; margin-bottom: 0.4rem;
+  }
+  .methodology p:last-child { margin-bottom: 0; }
+  .methodology strong { color: var(--navy); }
+
+  .footer-note {
+    margin-top: 1.5rem; padding: 1.1rem 1rem;
+    border-top: 1px solid var(--border);
+    text-align: center; font-size: 0.78rem;
+    color: var(--text-soft); line-height: 1.6;
+  }
+  .footer-note strong { color: var(--navy); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="brand">
+      <div class="eyebrow">Rupee Stories</div>
+      <h1>NRI Cost Dashboard</h1>
+    </div>
+    <div class="tagline">Cost of living across 19 Indian cities · for returning NRIs running the math</div>
+  </header>
+
+  <div class="assumption-banner">
+    <span class="pill">Spending, not sustainability</span>
+    <span>This dashboard estimates <strong>recurring household spending</strong> in Indian cities. It does not model investment returns, portfolio drawdown, or lifetime sustainability. For runway and corpus math, use the <a href="india-fatfire-calculator.html">FatFIRE calculator</a>. Calibration: 2025 r/FatFIRE Bangalore resident's data.</span>
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Lifestyle tier</label>
+      <div class="tier-buttons">
+        <button class="tier-btn" data-tier="lean">Lean<small>Decent, modest</small></button>
+        <button class="tier-btn active" data-tier="comfortable">Comfortable<small>Good area, good school</small></button>
+        <button class="tier-btn" data-tier="fatfire">FatFIRE<small>Premium everything</small></button>
+        <button class="tier-btn" data-tier="ultra">Ultra<small>Top of the market</small></button>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Cities</label>
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="1">Tier 1</button>
+        <button class="filter-btn" data-filter="2">Tier 2</button>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Family size</label>
+      <div class="slider-group">
+        <div class="slider-row">
+          <input type="range" id="family" min="1" max="8" value="4">
+          <span class="count" id="family-count">4</span>
+        </div>
+        <div class="slider-hint">Total people · scales travel + groceries</div>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Kids in premium school</label>
+      <div class="slider-group">
+        <div class="slider-row">
+          <input type="range" id="kids" min="0" max="6" value="2">
+          <span class="count" id="kids-count">2</span>
+        </div>
+        <div class="slider-hint">Only count premium-school kids. Mixed setups will lower the total.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insights" id="insights"></div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <h2>Monthly cost by city</h2>
+      <span class="table-header-meta" id="table-meta">Click any row to expand</span>
+    </div>
+    <div class="table-scroll">
+      <table id="city-table">
+        <thead>
+          <tr>
+            <th class="left" data-sort="name">City</th>
+            <th data-sort="rent">Rent<span class="unit">monthly</span></th>
+            <th data-sort="school">School<span class="unit">prorated/mo</span></th>
+            <th data-sort="help">Help<span class="unit">monthly</span></th>
+            <th data-sort="groceries">Groceries<span class="unit">monthly</span></th>
+            <th data-sort="utilities">Utilities<span class="unit">monthly</span></th>
+            <th data-sort="misc">Misc<span class="unit">monthly</span></th>
+            <th data-sort="travel">Travel<span class="unit">monthly</span></th>
+            <th data-sort="total" class="sorted">Total<span class="unit">monthly</span></th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="chart-section">
+    <h2>Monthly burn, sorted</h2>
+    <div class="chart-sub">Tier 1 in navy, Tier 2 in gold. Reflects current lifestyle tier and family settings.</div>
+    <svg id="city-chart" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+
+  <div class="setup-callout">
+    <div class="setup-callout-label">The thing the table does not show</div>
+    <h3>Year one is not steady-state</h3>
+    <p>The numbers above are <strong>monthly burn after you are settled</strong>. They do not include the one-time setup cost of moving back. A returnee NRI family typically spends a substantial chunk in the first year on furnishing, deposits, school admissions, vehicle purchase, and the dozen small things nobody warns you about.</p>
+    <p>These are <strong>first-year only</strong>, not recurring. Most families land at the lower end of the range if they reuse furniture from the old country, delay car upgrades, and rent before buying.</p>
+    <p>Rough ranges, total one-time spend at <strong id="setup-tier-name">Comfortable</strong> tier:</p>
+    <div class="setup-grid" id="setup-grid"></div>
+  </div>
+
+  <div class="methodology">
+    <h3>How to read these numbers</h3>
+    <p><strong>This is a cost-of-living reference, not a financial-independence calculator.</strong> The dashboard estimates recurring household spending in Indian cities. It does not model investment returns, portfolio drawdown, or lifetime sustainability. If you want runway and corpus math, use the FatFIRE calculator.</p>
+    <p><strong>Comfortable tier</strong> means a returnee NRI family in a 3-4BHK apartment in a good neighborhood, kids in a good school, full-time cook and maid plus a part-time driver, one international economy holiday a year. <strong>Lean</strong> trims to good local school, smaller apartment, less help. <strong>FatFIRE</strong> upgrades to a villa or top-end apartment, premium international school, full retinue, premium economy and one business class trip. <strong>Ultra</strong> is Embassy Boulevard, business class everywhere, suite hotel rooms.</p>
+    <p><strong>School assumption.</strong> The model assumes every kid you enter is in a premium international school at the current tier. This is a simplification. Bangalore alone has international schools ranging from a few thousand rupees per month to over a crore per year, and many returnee families mix one international + one CBSE, or send the older child to boarding. Mixed-school setups are common and will lower the estimate. To model a mixed setup, only enter the count of premium-school children in the kids slider.</p>
+    <p><strong>Rent, travel, family scaling.</strong> Rent multipliers represent realistic market ranges for top neighborhoods in each city, not exact quotes — your actual rent will swing based on community, building, and how aggressively you negotiate. Travel scales sub-linearly with family size (hotel rooms are shared); groceries scale linearly; help and rent do not scale with family size. The "Editor's pick" insight is a heuristic, not a verdict — it selects the cheapest city among those in the top half by school cost, as a rough proxy for cities that have premium school options without premium overall costs.</p>
+    <p>Calibration source: published rent indexes, school fee disclosures, and a Bangalore resident's detailed cost breakdown shared on r/FatFIRE in October 2025. <strong>Treat these as starting estimates.</strong> Your actual spend will swing 20 to 30 percent based on neighborhood, community, school, and how aggressively you negotiate.</p>
+  </div>
+
+  <div class="footer-note">
+    Built for <strong>r/rupeestories</strong> · <strong>rupeestories.substack.com</strong><br>
+    All figures in INR (₹). 1 lakh = 100,000. 1 crore = 10,000,000.
+  </div>
+</div>
+
+<script>
+/* ===== INLINED: cities-data.js (shared data for dashboard + calculator) ===== */
+/* =====================================================================
+ * cities-data.js
+ * Canonical data + helpers for the Rupee Stories cost tools.
+ * Both india-fatfire-calculator.html and nri-cost-dashboard.html load this.
+ *
+ * To update prices: edit this file once. Both tools pick up the change.
+ * ===================================================================== */
+
+// =====================================================================
+// COMFORTABLE-tier baseline costs per city
+// monthly INR, except `school` (annual per kid) and `travel` (annual)
+// Calibrated for a returnee NRI family of 4 (2 adults + 2 kids).
+// =====================================================================
+const CITIES = [
+  // ===== TIER 1 =====
+  {
+    name: 'Mumbai', tier: 1, region: 'West / Maharashtra',
+    tagline: 'Financial capital. Apartment-only. Highest rents in India.',
+    neighborhoods: 'Bandra West, Worli, Lower Parel, Powai (premium tier)',
+    schools: 'Dhirubhai Ambani International, Aditya Birla World Academy, JBCN',
+    notes: 'No villa option at any reasonable price. Commute and air quality are tradeoffs. Largest premium economy market.',
+    costs: { rent: 400000, school: 1200000, help: 70000, groceries: 40000, utilities: 35000, misc: 55000, travel: 1200000 }
+  },
+  {
+    name: 'Bangalore', tier: 1, region: 'South / Karnataka',
+    tagline: 'Tech metropolis. Climate is the draw. Traffic is the cost.',
+    neighborhoods: 'Whitefield, Hebbal, Indiranagar, Sadashivanagar, Koramangala',
+    schools: 'Stonehill International, TISB, Inventure, Canadian International, Mallya Aditi',
+    notes: 'Largest selection of premium international schools in India. Villas available in north Bangalore. Traffic adds 10+ hrs/week.',
+    costs: { rent: 200000, school: 1200000, help: 60000, groceries: 35000, utilities: 25000, misc: 50000, travel: 1000000 }
+  },
+  {
+    name: 'Delhi NCR', tier: 1, region: 'North / NCR',
+    tagline: 'Power and policy capital. Gurgaon for villa life.',
+    neighborhoods: 'DLF Phase 1-5 Gurgaon, Lutyens, Vasant Vihar, Greater Kailash',
+    schools: 'American Embassy School, Pathways, Heritage Xperiential, Step by Step',
+    notes: 'Severe winter air quality (AQI 400+) is the biggest non-financial cost. Excellent infrastructure in Gurgaon.',
+    costs: { rent: 200000, school: 1100000, help: 55000, groceries: 35000, utilities: 25000, misc: 45000, travel: 1000000 }
+  },
+  {
+    name: 'Pune', tier: 1, region: 'West / Maharashtra',
+    tagline: 'Bangalore alternative. Better climate, less traffic, smaller scale.',
+    neighborhoods: 'Koregaon Park, Kalyani Nagar, Boat Club Road, Kothrud',
+    schools: 'Mercedes-Benz International, Symbiosis, Vibgyor, Pawar Public',
+    notes: 'Many returning NRIs are picking Pune over Bangalore. Tradeoff is fewer top-tier schools.',
+    costs: { rent: 110000, school: 700000, help: 50000, groceries: 28000, utilities: 18000, misc: 38000, travel: 800000 }
+  },
+  {
+    name: 'Hyderabad', tier: 1, region: 'South / Telangana',
+    tagline: 'Best value tier 1. New infrastructure, good schools, sane traffic.',
+    neighborhoods: 'Jubilee Hills, Banjara Hills, Gachibowli, Kokapet, Kondapur',
+    schools: 'Oakridge International, Indus, CHIREC, Glendale, Aga Khan Academy',
+    notes: 'Often the answer when the math gets honest. 30 percent cheaper than Bangalore at every tier.',
+    costs: { rent: 110000, school: 750000, help: 45000, groceries: 28000, utilities: 18000, misc: 38000, travel: 800000 }
+  },
+  {
+    name: 'Chennai', tier: 1, region: 'South / Tamil Nadu',
+    tagline: 'Coastal, conservative, deep-rooted. Excellent schooling tradition.',
+    neighborhoods: 'Boat Club Road, Poes Garden, Adyar, ECR (East Coast Road)',
+    schools: 'American International, KC High, Chettinad Vidyashram, Padma Seshadri',
+    notes: 'Heat and humidity are real. Strong traditional school options. Very stable cost of living.',
+    costs: { rent: 100000, school: 700000, help: 45000, groceries: 28000, utilities: 18000, misc: 35000, travel: 800000 }
+  },
+  {
+    name: 'Kolkata', tier: 1, region: 'East / West Bengal',
+    tagline: 'Cultural capital. Cheapest tier 1. Slowest growth.',
+    neighborhoods: 'Alipore, Ballygunge, Salt Lake City, Rajarhat New Town',
+    schools: 'Calcutta International, La Martiniere, Modern High, South City',
+    notes: 'Best dollar-to-comfort ratio of all tier 1 cities. Limited international school options at premium tier.',
+    costs: { rent: 75000, school: 500000, help: 40000, groceries: 25000, utilities: 15000, misc: 32000, travel: 700000 }
+  },
+
+  // ===== TIER 2 =====
+  {
+    name: 'Goa', tier: 2, region: 'West / Goa',
+    tagline: 'Lifestyle premium territory. Beach life with NRI tax.',
+    neighborhoods: 'Assagao, Siolim, Sangolda, Dona Paula',
+    schools: 'Sharada Mandir, Sunshine Worldwide, Vasco American School',
+    notes: 'Rent and lifestyle costs are tier-1 priced because of demand from remote workers and second-home buyers. Few top schools.',
+    costs: { rent: 110000, school: 400000, help: 35000, groceries: 25000, utilities: 18000, misc: 35000, travel: 1000000 }
+  },
+  {
+    name: 'Chandigarh', tier: 2, region: 'North / Punjab-Haryana',
+    tagline: 'Planned city. Highest livability index in India. Premium tier 2.',
+    neighborhoods: 'Sector 8, 9, 10 (north), Sector 33, 35 (central)',
+    schools: 'American School, Strawberry Fields, Sacred Heart, Vivek High',
+    notes: 'Easy commute, clean, organized. Limited options at the very top of every category.',
+    costs: { rent: 80000, school: 450000, help: 35000, groceries: 25000, utilities: 15000, misc: 32000, travel: 800000 }
+  },
+  {
+    name: 'Ahmedabad', tier: 2, region: 'West / Gujarat',
+    tagline: 'Trade hub. Vegetarian friendly. Strong Gujarati NRI return base.',
+    neighborhoods: 'Bodakdev, SG Highway, Prahlad Nagar, Shilaj',
+    schools: 'Riverside School, DPS Bopal, Calorx Olive, Anand Niketan',
+    notes: 'Dry climate, low crime, reasonable infrastructure. Alcohol sales restricted (state law).',
+    costs: { rent: 75000, school: 400000, help: 35000, groceries: 22000, utilities: 14000, misc: 30000, travel: 700000 }
+  },
+  {
+    name: 'Jaipur', tier: 2, region: 'North / Rajasthan',
+    tagline: 'Heritage city. Growing tier 2. Pollution and water are real issues.',
+    neighborhoods: 'C-Scheme, Vaishali Nagar, Mansarovar, Civil Lines',
+    schools: 'Step by Step, Maharaja Sawai Man Singh, Jayshree Periwal, Neerja Modi',
+    notes: 'Strong school network growing. Summer is brutal (45+ degrees). Closer to family for many North Indian NRIs.',
+    costs: { rent: 65000, school: 400000, help: 32000, groceries: 22000, utilities: 13000, misc: 28000, travel: 700000 }
+  },
+  {
+    name: 'Lucknow', tier: 2, region: 'North / Uttar Pradesh',
+    tagline: 'Old-world charm meets new-build infrastructure.',
+    neighborhoods: 'Gomti Nagar, Hazratganj, Mahanagar, Aliganj',
+    schools: 'CMS (City Montessori), La Martiniere, Seth Anandram Jaipuria',
+    notes: 'CMS is a unique school model with global reach. Air quality is a winter concern.',
+    costs: { rent: 60000, school: 350000, help: 30000, groceries: 22000, utilities: 12000, misc: 28000, travel: 600000 }
+  },
+  {
+    name: 'Kochi', tier: 2, region: 'South / Kerala',
+    tagline: 'Backwaters and Gulf-NRI returns. Steady and grounded.',
+    neighborhoods: 'Kakkanad, Marine Drive, Panampilly Nagar, Kadavanthra',
+    schools: 'Choice School, Toc H, Bhavans Adarsha, Global Public',
+    notes: 'Kerala monsoon is intense. Strong returnee community from the Gulf. Healthcare excellent.',
+    costs: { rent: 60000, school: 400000, help: 28000, groceries: 22000, utilities: 13000, misc: 28000, travel: 700000 }
+  },
+  {
+    name: 'Coimbatore', tier: 2, region: 'South / Tamil Nadu',
+    tagline: 'Manchester of South India. Industrial calm.',
+    neighborhoods: 'Race Course, RS Puram, Saibaba Colony, Vadavalli',
+    schools: 'TVS Matric, Stanes Anglo Indian, Chinmaya Vidyalaya, PSG Public',
+    notes: 'Mild climate year-round. Good for families with industrial business background. School choices limited at premium.',
+    costs: { rent: 55000, school: 300000, help: 30000, groceries: 22000, utilities: 13000, misc: 28000, travel: 600000 }
+  },
+  {
+    name: 'Indore', tier: 2, region: 'Central / Madhya Pradesh',
+    tagline: 'Cleanest city in India seven years running. Underrated.',
+    neighborhoods: 'Vijay Nagar, Bicholi Mardana, Old Palasia, Khajrana',
+    schools: 'Daly College, The Emerald Heights, Choithram, DPS Indore',
+    notes: 'Cleanest urban living in India by a wide margin. Sleepy on weekends. Limited international airport.',
+    costs: { rent: 50000, school: 350000, help: 28000, groceries: 20000, utilities: 12000, misc: 25000, travel: 500000 }
+  },
+  {
+    name: 'Trivandrum', tier: 2, region: 'South / Kerala',
+    tagline: 'Capital of Kerala. Slower pace. Coastal.',
+    neighborhoods: 'Kowdiar, Pattom, Kuravankonam, Vellayambalam',
+    schools: 'Christ Nagar, Loyola, Bhavans, St Thomas Residential',
+    notes: 'Quiet, green, affordable. Schools at the very top tier are limited.',
+    costs: { rent: 50000, school: 300000, help: 28000, groceries: 22000, utilities: 12000, misc: 25000, travel: 600000 }
+  },
+  {
+    name: 'Bhubaneswar', tier: 2, region: 'East / Odisha',
+    tagline: 'Smart-city blueprint. Government-driven growth.',
+    neighborhoods: 'Patia, Jaydev Vihar, Nayapalli, Saheed Nagar',
+    schools: 'KIIT International, DAV Public, Sai International, Mother\'s Public',
+    notes: 'Cyclones are a real concern. KIIT campus area is the strongest residential pick.',
+    costs: { rent: 45000, school: 300000, help: 25000, groceries: 20000, utilities: 12000, misc: 25000, travel: 500000 }
+  },
+  {
+    name: 'Vizag', tier: 2, region: 'South / Andhra Pradesh',
+    tagline: 'Coastal city. Slow lane. Naval port economy.',
+    neighborhoods: 'MVP Colony, Beach Road, Madhurawada, Seethammadhara',
+    schools: 'DAV Public, Delhi Public, Timpany, Visakha Valley',
+    notes: 'Beach and hills both nearby. Commercial aviation is limited. Best for retirees.',
+    costs: { rent: 50000, school: 300000, help: 28000, groceries: 22000, utilities: 12000, misc: 25000, travel: 500000 }
+  },
+  {
+    name: 'Mysuru', tier: 2, region: 'South / Karnataka',
+    tagline: 'Heritage city, 3 hours from Bangalore. Royal calm.',
+    neighborhoods: 'Vijayanagar, Saraswathipuram, Lakshmipuram, Yadavagiri',
+    schools: 'Mahajana, MIT International, Sadvidya, Vidyodaya',
+    notes: 'Great option for those who want Bangalore proximity without Bangalore costs. Limited career-track schools.',
+    costs: { rent: 50000, school: 300000, help: 28000, groceries: 22000, utilities: 12000, misc: 25000, travel: 500000 }
+  }
+];
+
+// =====================================================================
+// LIFESTYLE TIER MULTIPLIERS
+// Calibrated against a 2025 Bangalore resident cost breakdown on r/FatFIRE.
+// School and rent multipliers respect real market ceilings (Stonehill caps at ~20L/kid,
+// Embassy Boulevard rent caps around 4L). Travel scales aggressively at higher tiers
+// because that is where business-class + suite-room spend kicks in.
+// =====================================================================
+const TIER_MULT = {
+  lean:        { rent: 0.50, school: 0.40, help: 0.60, groceries: 0.70, utilities: 0.55, misc: 0.55, travel: 0.50 },
+  comfortable: { rent: 1.00, school: 1.00, help: 1.00, groceries: 1.00, utilities: 1.00, misc: 1.00, travel: 1.00 },
+  fatfire:     { rent: 1.50, school: 1.40, help: 1.30, groceries: 1.20, utilities: 1.40, misc: 1.30, travel: 2.20 },
+  ultra:       { rent: 2.00, school: 1.50, help: 1.50, groceries: 1.35, utilities: 1.80, misc: 1.40, travel: 4.00 }
+};
+
+const TIER_LABELS = {
+  lean: 'Lean',
+  comfortable: 'Comfortable',
+  fatfire: 'FatFIRE',
+  ultra: 'Ultra-Luxury'
+};
+
+// =====================================================================
+// COMPUTE costs for a given city + tier + family configuration
+// kids = number of children in premium/intl school (school cost multiplier)
+// familySize = total people in household (travel + groceries scale with this)
+// Baseline assumes family of 4. Travel scales sub-linearly because hotel rooms
+// and transport have shared costs. Groceries scale linearly because food is per-person.
+// =====================================================================
+function computeCity(city, tier, kids, familySize) {
+  const m = TIER_MULT[tier];
+  const c = city.costs;
+  const baseFamily = 4;
+  const travelFamilyFactor = Math.pow(familySize / baseFamily, 0.7);
+  const groceryFamilyFactor = familySize / baseFamily;
+
+  const monthly = {
+    rent:      c.rent * m.rent,
+    help:      c.help * m.help,
+    groceries: c.groceries * m.groceries * groceryFamilyFactor,
+    utilities: c.utilities * m.utilities,
+    misc:      c.misc * m.misc,
+    school:    (c.school * m.school * kids) / 12,
+    travel:    (c.travel * m.travel * travelFamilyFactor) / 12
+  };
+  const total = Object.values(monthly).reduce((a, b) => a + b, 0);
+
+  return {
+    ...city,
+    monthly,
+    total,
+    travel_annual: c.travel * m.travel * travelFamilyFactor,
+    school_annual_per_kid: c.school * m.school
+  };
+}
+
+// =====================================================================
+// SETUP COST estimate for first year of returning to India
+// These do NOT belong in monthly burn but they are real and large.
+// All ranges are total one-time spend, not monthly.
+// =====================================================================
+const SETUP_COSTS = {
+  // Lower / Upper bounds in INR
+  furnishing: { lean: [800000, 1500000],  comfortable: [1500000, 3500000], fatfire: [3500000, 7500000], ultra: [7500000, 15000000] },
+  deposit:    { lean: [600000, 1200000],  comfortable: [1200000, 2400000], fatfire: [1800000, 3600000], ultra: [2400000, 4800000] }, // 6 months rent typically
+  car:        { lean: [800000, 1500000],  comfortable: [2500000, 5000000], fatfire: [6000000, 12000000], ultra: [15000000, 35000000] },
+  movein:     { lean: [200000, 500000],   comfortable: [500000, 1000000],  fatfire: [1000000, 2000000],  ultra: [2000000, 4000000] }
+  // appliances, school deposits, initial healthcare setup, parent move-in costs etc
+};
+
+function getSetupCostRange(tier) {
+  const t = SETUP_COSTS;
+  const lo = t.furnishing[tier][0] + t.deposit[tier][0] + t.car[tier][0] + t.movein[tier][0];
+  const hi = t.furnishing[tier][1] + t.deposit[tier][1] + t.car[tier][1] + t.movein[tier][1];
+  return { lo, hi };
+}
+
+// =====================================================================
+// FORMAT helper
+// =====================================================================
+function fmtINR(n) {
+  if (n >= 10000000) return `₹${(n / 10000000).toFixed(2)}cr`;
+  if (n >= 100000) return `₹${(n / 100000).toFixed(1)}L`;
+  if (n >= 10000) return `₹${(n / 1000).toFixed(0)}k`;
+  if (n >= 1000) return `₹${(n / 1000).toFixed(1)}k`;
+  return `₹${Math.round(n)}`;
+}
+
+</script>
+
+<script>
+// CONFIG
+const CALCULATOR_URL = 'india-fatfire-calculator.html';
+const STORAGE_KEY = 'nri-dashboard-state-v1';
+
+// STATE — restore from localStorage if present
+const defaultState = {
+  tier: 'comfortable',
+  filter: 'all',
+  kids: 2,
+  family: 4,
+  sortKey: 'total',
+  sortAsc: false,
+  expanded: null
+};
+
+let state = { ...defaultState };
+try {
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  // Only restore safe keys, leave expanded reset on load
+  ['tier', 'filter', 'kids', 'family', 'sortKey', 'sortAsc'].forEach(k => {
+    if (saved[k] !== undefined) state[k] = saved[k];
+  });
+} catch (e) {}
+
+function persist() {
+  try {
+    const { expanded, ...toSave } = state;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  } catch (e) {}
+}
+
+function getCities() {
+  let arr = CITIES.map(c => computeCity(c, state.tier, state.kids, state.family));
+  if (state.filter !== 'all') arr = arr.filter(c => c.tier == state.filter);
+  arr.sort((a, b) => {
+    let va, vb;
+    if (state.sortKey === 'name') { va = a.name; vb = b.name; }
+    else if (state.sortKey === 'total') { va = a.total; vb = b.total; }
+    else if (state.sortKey === 'travel') { va = a.travel_annual; vb = b.travel_annual; }
+    else { va = a.monthly[state.sortKey]; vb = b.monthly[state.sortKey]; }
+    if (typeof va === 'string') {
+      return state.sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+    }
+    return state.sortAsc ? va - vb : vb - va;
+  });
+  return arr;
+}
+
+// Defensive: if filter changes and excluded the open city, clear it
+function pruneExpanded() {
+  if (!state.expanded) return;
+  const visible = getCities();
+  if (!visible.find(c => c.name === state.expanded)) {
+    state.expanded = null;
+  }
+}
+
+function renderTable() {
+  pruneExpanded();
+  const cities = getCities();
+  const cheapest = [...cities].sort((a, b) => a.total - b.total)[0];
+  const priciest = [...cities].sort((a, b) => b.total - a.total)[0];
+
+  let html = '';
+  cities.forEach(c => {
+    const isExpanded = state.expanded === c.name;
+    const cls = [
+      isExpanded ? 'expanded' : '',
+      c.name === cheapest?.name ? 'cheapest' : '',
+      c.name === priciest?.name ? 'priciest' : ''
+    ].filter(Boolean).join(' ');
+
+    html += `
+      <tr class="${cls}" data-city="${c.name}">
+        <td class="left">
+          <span class="chevron">›</span>
+          <span class="city-name">${c.name}</span>
+          <span class="tier-badge t${c.tier}">T${c.tier}</span>
+          <span class="details-hint">${isExpanded ? 'Hide details' : 'Details'}</span>
+        </td>
+        <td>${fmtINR(c.monthly.rent)}</td>
+        <td>${fmtINR(c.monthly.school)}</td>
+        <td>${fmtINR(c.monthly.help)}</td>
+        <td>${fmtINR(c.monthly.groceries)}</td>
+        <td>${fmtINR(c.monthly.utilities)}</td>
+        <td>${fmtINR(c.monthly.misc)}</td>
+        <td>${fmtINR(c.monthly.travel)}</td>
+        <td class="total">${fmtINR(c.total)}</td>
+      </tr>
+    `;
+    if (isExpanded) html += renderDetailRow(c);
+  });
+  document.getElementById('table-body').innerHTML = html;
+
+  document.querySelectorAll('thead th').forEach(th => {
+    th.classList.remove('sorted', 'asc');
+    if (th.dataset.sort === state.sortKey) {
+      th.classList.add('sorted');
+      if (state.sortAsc) th.classList.add('asc');
+    }
+  });
+
+  document.querySelectorAll('tbody tr[data-city]').forEach(tr => {
+    tr.addEventListener('click', e => {
+      if (e.target.closest('.detail-cta')) return;
+      const cityName = tr.dataset.city;
+      state.expanded = state.expanded === cityName ? null : cityName;
+      renderTable();
+    });
+  });
+}
+
+function renderDetailRow(c) {
+  const m = c.monthly;
+  const max = Math.max(m.rent, m.help, m.school, m.groceries, m.utilities, m.misc, m.travel);
+  const bar = (label, val) => `
+    <div class="bar-row">
+      <div class="bar-label"><span class="name">${label}</span><span class="val">${fmtINR(val)}/mo</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width: ${(val / max * 100).toFixed(1)}%"></div></div>
+    </div>
+  `;
+
+  const citySlug = c.name.toLowerCase().replace(/\s+/g, '-');
+  const calcURL = `${CALCULATOR_URL}?city=${encodeURIComponent(citySlug)}&tier=${state.tier}&kids=${state.kids}&family=${state.family}`;
+
+  return `
+    <tr class="detail-row">
+      <td colspan="9">
+        <div class="detail-content">
+          <div>
+            <h3>${c.name}</h3>
+            <p class="city-tagline">${c.tagline}</p>
+            <div class="detail-fact"><strong>Region:</strong> ${c.region}</div>
+            <div class="detail-fact"><strong>Top areas:</strong> ${c.neighborhoods}</div>
+            <div class="detail-fact"><strong>Schools:</strong> ${c.schools}</div>
+            <div class="detail-fact"><strong>Note:</strong> ${c.notes}</div>
+            <div class="detail-fact" style="margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px dashed var(--border);">
+              <strong>Annual burn:</strong> ${fmtINR(c.total * 12)} · <strong>School/kid:</strong> ${fmtINR(c.school_annual_per_kid)}/yr
+            </div>
+            <a class="detail-cta" href="${calcURL}">Open the corpus calculator for ${c.name}</a>
+          </div>
+          <div class="detail-bars">
+            ${bar('Rent', m.rent)}
+            ${bar(`School (${state.kids} kid${state.kids === 1 ? '' : 's'})`, m.school)}
+            ${bar('Help', m.help)}
+            ${bar(`Groceries (${state.family} ppl)`, m.groceries)}
+            ${bar('Utilities', m.utilities)}
+            ${bar('Misc', m.misc)}
+            ${bar('Travel', m.travel)}
+          </div>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function renderInsights() {
+  const cities = getCities();
+  if (cities.length === 0) {
+    document.getElementById('insights').innerHTML = '';
+    return;
+  }
+
+  const cheapest = [...cities].sort((a, b) => a.total - b.total)[0];
+  const priciest = [...cities].sort((a, b) => b.total - a.total)[0];
+  const cheapestSchool = [...cities].sort((a, b) => a.school_annual_per_kid - b.school_annual_per_kid)[0];
+
+  // "Best value" = top half by school cost (proxy for quality), then cheapest total
+  const bySchoolDesc = [...cities].sort((a, b) => b.school_annual_per_kid - a.school_annual_per_kid);
+  const goodSchoolHalf = bySchoolDesc.slice(0, Math.ceil(bySchoolDesc.length / 2));
+  const value = [...goodSchoolHalf].sort((a, b) => a.total - b.total)[0];
+
+  document.getElementById('insights').innerHTML = `
+    <div class="insight cheap">
+      <div class="insight-label">Cheapest overall</div>
+      <div class="insight-city">${cheapest.name}</div>
+      <div class="insight-value">${fmtINR(cheapest.total)}/mo · ${fmtINR(cheapest.total * 12)}/yr</div>
+    </div>
+    <div class="insight school">
+      <div class="insight-label">Cheapest school</div>
+      <div class="insight-city">${cheapestSchool.name}</div>
+      <div class="insight-value">${fmtINR(cheapestSchool.school_annual_per_kid / 12)}/mo · ${fmtINR(cheapestSchool.school_annual_per_kid)}/yr</div>
+      <div class="insight-rule">per kid</div>
+    </div>
+    <div class="insight value">
+      <div class="insight-label">Editor's pick</div>
+      <div class="insight-city">${value.name}</div>
+      <div class="insight-value">${fmtINR(value.total)}/mo · ${fmtINR(value.total * 12)}/yr</div>
+      <div class="insight-rule">Top half by school cost, lowest total</div>
+    </div>
+    <div class="insight expensive">
+      <div class="insight-label">Most expensive</div>
+      <div class="insight-city">${priciest.name}</div>
+      <div class="insight-value">${fmtINR(priciest.total)}/mo · ${fmtINR(priciest.total * 12)}/yr</div>
+      <div class="insight-rule">${(priciest.total / cheapest.total).toFixed(1)}× the cheapest</div>
+    </div>
+  `;
+}
+
+function renderChart() {
+  const cities = [...getCities()].sort((a, b) => a.total - b.total);
+  if (cities.length === 0) return;
+  const max = Math.max(...cities.map(c => c.total));
+  const W = 800, rowH = 26, labelW = 130, padR = 110, padTop = 12, padBottom = 12;
+  const H = padTop + padBottom + cities.length * rowH;
+
+  let bars = '';
+  cities.forEach((c, i) => {
+    const y = padTop + i * rowH;
+    const barW = (c.total / max) * (W - labelW - padR);
+    const fill = c.tier === 1 ? 'url(#grad-navy)' : 'url(#grad-gold)';
+    bars += `
+      <text x="${labelW - 10}" y="${y + rowH/2 + 4}" text-anchor="end" font-family="DM Sans" font-size="12" font-weight="500" fill="#1a2e4a">${c.name}</text>
+      <rect x="${labelW}" y="${y + 4}" width="${barW}" height="${rowH - 10}" fill="${fill}" rx="2"/>
+      <text x="${labelW + barW + 6}" y="${y + rowH/2 + 4}" font-family="JetBrains Mono" font-size="10" fill="#5a5a5a">${fmtINR(c.total)}/mo</text>
+    `;
+  });
+
+  const svg = document.getElementById('city-chart');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="grad-navy" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#1a2e4a"/><stop offset="100%" stop-color="#2a4060"/></linearGradient>
+      <linearGradient id="grad-gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#b8932f"/><stop offset="100%" stop-color="#d4b260"/></linearGradient>
+    </defs>
+    ${bars}
+  `;
+}
+
+function renderSetupCosts() {
+  const range = getSetupCostRange(state.tier);
+  const t = SETUP_COSTS;
+  const items = [
+    { label: 'Furnishing', range: t.furnishing[state.tier] },
+    { label: 'Rental deposit', range: t.deposit[state.tier] },
+    { label: 'Vehicle', range: t.car[state.tier] },
+    { label: 'Move-in misc', range: t.movein[state.tier] }
+  ];
+  let html = '';
+  items.forEach(it => {
+    html += `
+      <div class="setup-item">
+        <div class="setup-item-label">${it.label}</div>
+        <div class="setup-item-value">${fmtINR(it.range[0])} – ${fmtINR(it.range[1])}</div>
+      </div>
+    `;
+  });
+  html += `
+    <div class="setup-item total">
+      <div class="setup-item-label">Total first-year setup</div>
+      <div class="setup-item-value">${fmtINR(range.lo)} – ${fmtINR(range.hi)}</div>
+    </div>
+  `;
+  document.getElementById('setup-grid').innerHTML = html;
+  document.getElementById('setup-tier-name').textContent = TIER_LABELS[state.tier];
+}
+
+function renderAll() {
+  renderTable();
+  renderInsights();
+  renderChart();
+  renderSetupCosts();
+  document.getElementById('table-meta').textContent =
+    `${TIER_LABELS[state.tier]} · family of ${state.family} · ${state.kids} premium-school kid${state.kids === 1 ? '' : 's'}`;
+}
+
+function syncControlsFromState() {
+  document.querySelectorAll('.tier-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tier === state.tier);
+  });
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.filter === state.filter);
+  });
+  document.getElementById('kids').value = state.kids;
+  document.getElementById('kids-count').textContent = state.kids;
+  document.getElementById('family').value = state.family;
+  document.getElementById('family-count').textContent = state.family;
+}
+
+document.querySelectorAll('.tier-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.tier = btn.dataset.tier;
+    syncControlsFromState();
+    persist();
+    renderAll();
+  });
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.filter = btn.dataset.filter;
+    syncControlsFromState();
+    persist();
+    renderAll();
+  });
+});
+
+document.getElementById('kids').addEventListener('input', e => {
+  state.kids = parseInt(e.target.value) || 0;
+  document.getElementById('kids-count').textContent = state.kids;
+  persist();
+  renderAll();
+});
+
+document.getElementById('family').addEventListener('input', e => {
+  state.family = parseInt(e.target.value) || 1;
+  document.getElementById('family-count').textContent = state.family;
+  persist();
+  renderAll();
+});
+
+document.querySelectorAll('thead th').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    if (state.sortKey === key) state.sortAsc = !state.sortAsc;
+    else { state.sortKey = key; state.sortAsc = key === 'name'; }
+    persist();
+    renderAll();
+  });
+});
+
+// init
+syncControlsFromState();
+renderAll();
+</script>
+
+</body>
+</html>
