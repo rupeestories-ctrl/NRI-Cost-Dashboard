@@ -36,57 +36,85 @@
     color: var(--text);
     line-height: 1.55;
     min-height: 100vh;
-    padding: 1.5rem 1rem;
+    padding: 0;
     font-size: 14px;
   }
 
-  .container { max-width: 1280px; margin: 0 auto; }
+  .container { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
 
-  /* HEADER — only the brand title is serif. Everything else is sans. */
-  header {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+  /* HERO BAND — full-width dark navy, matches NRI Scorecard pattern */
+  .hero {
+    background: var(--navy-deep);
+    color: var(--cream);
+    padding: 3.5rem 1rem 3rem;
+    margin-bottom: 0;
+    position: relative;
+    overflow: hidden;
   }
-
-  .brand {
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -30%; right: -10%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, var(--gold) 0%, transparent 70%);
+    opacity: 0.08;
+    pointer-events: none;
   }
-
-  h1 {
+  .hero-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .hero h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.75rem;
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
     font-weight: 700;
-    color: var(--navy);
-    line-height: 1;
-    letter-spacing: -0.01em;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.85rem;
+    color: white;
   }
-
-  .eyebrow {
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
+  .hero h1 .accent {
     color: var(--gold);
-    font-weight: 600;
+    font-style: italic;
+  }
+  .hero-meta {
+    font-size: 0.95rem;
+    color: rgba(250, 246, 237, 0.7);
+    margin-bottom: 1.4rem;
+    font-weight: 400;
+  }
+  .hero-meta .dot {
+    margin: 0 0.6rem;
+    opacity: 0.5;
+  }
+  .hero-pills {
+    display: flex;
+    justify-content: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+  }
+  .hero-pill {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--cream);
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
   }
 
-  .tagline {
-    font-size: 0.85rem;
-    color: var(--text-soft);
-    max-width: 480px;
-    text-align: right;
+  .main-content {
+    padding: 2rem 1rem 1rem;
   }
 
-  @media (max-width: 700px) {
-    .tagline { text-align: left; }
-  }
+  /* OLD HEADER STYLES — overridden */
+  header { display: none; }
 
   /* ASSUMPTION BANNER */
   .assumption-banner {
@@ -521,14 +549,22 @@
 </head>
 <body>
 
-<div class="container">
-  <header>
-    <div class="brand">
-      <div class="eyebrow">Rupee Stories</div>
-      <h1>NRI Cost Dashboard</h1>
+<div class="hero">
+  <div class="hero-inner">
+    <h1>NRI Cost <span class="accent">Dashboard</span></h1>
+    <div class="hero-meta">
+      <span>19 Indian cities</span><span class="dot">·</span><span>Tier 1 + Tier 2</span><span class="dot">·</span><span>4 lifestyle tiers</span>
     </div>
-    <div class="tagline">Cost of living across 19 Indian cities · for returning NRIs running the math</div>
-  </header>
+    <div class="hero-pills">
+      <span class="hero-pill">🔒 No login</span>
+      <span class="hero-pill">📊 Side-by-side compare</span>
+      <span class="hero-pill">🏙️ Updated 2026</span>
+    </div>
+  </div>
+</div>
+
+<div class="main-content">
+<div class="container">
 
   <div class="assumption-banner">
     <span class="pill">Spending, not sustainability</span>
@@ -642,6 +678,7 @@
     Built for <strong>r/rupeestories</strong> · <strong>rupeestories.substack.com</strong><br>
     All figures in INR (₹). 1 lakh = 100,000. 1 crore = 10,000,000.
   </div>
+</div>
 </div>
 
 <script>
