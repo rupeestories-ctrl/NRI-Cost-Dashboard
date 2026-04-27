@@ -485,6 +485,13 @@
     font-size: 0.78rem; color: white; font-weight: 500;
   }
   .setup-item.total .setup-item-value { font-size: 0.95rem; }
+  .setup-item-anchor {
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    color: var(--gold-soft);
+    font-style: italic;
+    line-height: 1.4;
+  }
 
   /* METHODOLOGY */
   .methodology {
@@ -573,6 +580,7 @@
           <span class="slider-tag">local</span>
         </div>
         <div class="slider-hint">Local CBSE/state board ≈ 25% of premium intl. Mix as needed.</div>
+        <div class="slider-hint" style="color: var(--rust); font-weight: 500; margin-top: 0.25rem;">School is the biggest cost driver in most cities.</div>
       </div>
     </div>
   </div>
@@ -584,7 +592,7 @@
       <h2>Monthly cost by city</h2>
       <span class="table-header-meta" id="table-meta">Click any row to expand</span>
     </div>
-    <div class="table-tagline">Same lifestyle. Different city. Cost can swing 2× or more.</div>
+    <div class="table-tagline">Same life. Different city. Cost swings 2×.</div>
     <div class="table-scroll">
       <table id="city-table">
         <thead>
@@ -625,7 +633,7 @@
     <p><strong>This is a cost-of-living reference, not a financial-independence calculator.</strong> The dashboard estimates recurring household spending in Indian cities. It does not model investment returns, portfolio drawdown, or lifetime sustainability. If you want runway and corpus math, use the FatFIRE calculator.</p>
     <p><strong>Comfortable tier</strong> means a returnee NRI family in a 3-4BHK apartment in a good neighborhood, kids in a good school, full-time cook and maid plus a part-time driver, one international economy holiday a year. <strong>Lean</strong> trims to good local school, smaller apartment, less help. <strong>FatFIRE</strong> upgrades to a villa or top-end apartment, premium international school, full retinue, premium economy and one business class trip. <strong>Ultra</strong> is Embassy Boulevard, business class everywhere, suite hotel rooms.</p>
     <p><strong>School assumption.</strong> The model assumes every kid you enter is in a premium international school at the current tier. This is a simplification. Bangalore alone has international schools ranging from a few thousand rupees per month to over a crore per year, and many returnee families mix one international + one CBSE, or send the older child to boarding. Mixed-school setups are common and will lower the estimate. To model a mixed setup, only enter the count of premium-school children in the kids slider.</p>
-    <p><strong>Rent, travel, family scaling.</strong> Rent multipliers represent realistic market ranges for top neighborhoods in each city, not exact quotes — your actual rent will swing based on community, building, and how aggressively you negotiate. Travel scales sub-linearly with family size (hotel rooms are shared); groceries scale linearly; help and rent do not scale with family size. The "Editor's pick" insight is a heuristic, not a verdict — it selects the cheapest city among those in the top half by school cost, as a rough proxy for cities that have premium school options without premium overall costs.</p>
+    <p><strong>Rent, travel, family scaling.</strong> Rent multipliers represent realistic market ranges for top neighborhoods in each city, not exact quotes — your actual rent will swing based on community, building, and how aggressively you negotiate. Travel scales sub-linearly with family size (hotel rooms are shared); groceries scale linearly; help and rent do not scale with family size. The "Best value" insight is a heuristic, not a verdict — it selects the cheapest city among those in the top half by school cost, as a rough proxy for cities that have premium school options without premium overall costs.</p>
     <p>Calibration source: published rent indexes, school fee disclosures, and a Bangalore resident's detailed cost breakdown shared on r/FatFIRE in October 2025. <strong>Treat these as starting estimates.</strong> Your actual spend will swing 20 to 30 percent based on neighborhood, community, school, and how aggressively you negotiate.</p>
     <p><strong>Cash flow is lumpy.</strong> School fees are paid annually or per term, travel happens once or twice a year, maintenance hits unpredictably. The dashboard smooths all of this into monthly averages for comparability — useful for planning, but cash in the bank does not flow this way.</p>
   </div>
@@ -1099,10 +1107,10 @@ function renderInsights() {
       <div class="insight-rule">per kid</div>
     </div>
     <div class="insight value">
-      <div class="insight-label">Editor's pick</div>
+      <div class="insight-label">Best value</div>
       <div class="insight-city">${value.name}</div>
       <div class="insight-value">${fmtINR(value.total)}/mo · ${fmtINR(value.total * 12)}/yr</div>
-      <div class="insight-rule">Top half by school cost, lowest total</div>
+      <div class="insight-rule">Good schools + lower overall cost</div>
     </div>
     <div class="insight expensive">
       <div class="insight-label">Most expensive</div>
@@ -1165,6 +1173,7 @@ function renderSetupCosts() {
     <div class="setup-item total">
       <div class="setup-item-label">Total first-year setup</div>
       <div class="setup-item-value">${fmtINR(range.lo)} – ${fmtINR(range.hi)}</div>
+      <div class="setup-item-anchor">Most families land closer to the lower half.</div>
     </div>
   `;
   document.getElementById('setup-grid').innerHTML = html;
