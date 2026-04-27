@@ -188,6 +188,15 @@
     min-width: 1.5rem;
     text-align: right;
   }
+  .slider-row .slider-tag {
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    min-width: 3.2rem;
+    text-align: left;
+  }
   .slider-hint {
     font-size: 0.7rem;
     color: var(--text-faint);
@@ -251,6 +260,15 @@
   .table-header-meta {
     font-size: 0.72rem; color: var(--gold-soft);
     letter-spacing: 0.02em;
+  }
+  .table-tagline {
+    background: var(--gold-paler);
+    padding: 0.5rem 1.25rem;
+    font-size: 0.78rem;
+    color: var(--navy);
+    font-weight: 500;
+    border-bottom: 1px solid var(--gold-pale);
+    font-style: italic;
   }
   .table-scroll { overflow-x: auto; }
 
@@ -542,13 +560,19 @@
     </div>
 
     <div class="control-group">
-      <label>Kids in premium school</label>
+      <label>Kids in school</label>
       <div class="slider-group">
         <div class="slider-row">
           <input type="range" id="kids" min="0" max="6" value="2">
           <span class="count" id="kids-count">2</span>
+          <span class="slider-tag">premium</span>
         </div>
-        <div class="slider-hint">Only count premium-school kids. Mixed setups will lower the total.</div>
+        <div class="slider-row">
+          <input type="range" id="kids-local" min="0" max="6" value="0">
+          <span class="count" id="kids-local-count">0</span>
+          <span class="slider-tag">local</span>
+        </div>
+        <div class="slider-hint">Local CBSE/state board ≈ 25% of premium intl. Mix as needed.</div>
       </div>
     </div>
   </div>
@@ -560,6 +584,7 @@
       <h2>Monthly cost by city</h2>
       <span class="table-header-meta" id="table-meta">Click any row to expand</span>
     </div>
+    <div class="table-tagline">Same lifestyle. Different city. Cost can swing 2× or more.</div>
     <div class="table-scroll">
       <table id="city-table">
         <thead>
@@ -590,7 +615,7 @@
     <div class="setup-callout-label">The thing the table does not show</div>
     <h3>Year one is not steady-state</h3>
     <p>The numbers above are <strong>monthly burn after you are settled</strong>. They do not include the one-time setup cost of moving back. A returnee NRI family typically spends a substantial chunk in the first year on furnishing, deposits, school admissions, vehicle purchase, and the dozen small things nobody warns you about.</p>
-    <p>These are <strong>first-year only</strong>, not recurring. Most families land at the lower end of the range if they reuse furniture from the old country, delay car upgrades, and rent before buying.</p>
+    <p>Most people underestimate this by <strong>2 to 3 times</strong>. These are <strong>first-year only</strong>, not recurring. Most families land at the lower end of the range if they reuse furniture from the old country, delay car upgrades, and rent before buying.</p>
     <p>Rough ranges, total one-time spend at <strong id="setup-tier-name">Comfortable</strong> tier:</p>
     <div class="setup-grid" id="setup-grid"></div>
   </div>
@@ -602,6 +627,7 @@
     <p><strong>School assumption.</strong> The model assumes every kid you enter is in a premium international school at the current tier. This is a simplification. Bangalore alone has international schools ranging from a few thousand rupees per month to over a crore per year, and many returnee families mix one international + one CBSE, or send the older child to boarding. Mixed-school setups are common and will lower the estimate. To model a mixed setup, only enter the count of premium-school children in the kids slider.</p>
     <p><strong>Rent, travel, family scaling.</strong> Rent multipliers represent realistic market ranges for top neighborhoods in each city, not exact quotes — your actual rent will swing based on community, building, and how aggressively you negotiate. Travel scales sub-linearly with family size (hotel rooms are shared); groceries scale linearly; help and rent do not scale with family size. The "Editor's pick" insight is a heuristic, not a verdict — it selects the cheapest city among those in the top half by school cost, as a rough proxy for cities that have premium school options without premium overall costs.</p>
     <p>Calibration source: published rent indexes, school fee disclosures, and a Bangalore resident's detailed cost breakdown shared on r/FatFIRE in October 2025. <strong>Treat these as starting estimates.</strong> Your actual spend will swing 20 to 30 percent based on neighborhood, community, school, and how aggressively you negotiate.</p>
+    <p><strong>Cash flow is lumpy.</strong> School fees are paid annually or per term, travel happens once or twice a year, maintenance hits unpredictably. The dashboard smooths all of this into monthly averages for comparability — useful for planning, but cash in the bank does not flow this way.</p>
   </div>
 
   <div class="footer-note">
@@ -806,17 +832,26 @@ const TIER_LABELS = {
 
 // =====================================================================
 // COMPUTE costs for a given city + tier + family configuration
-// kids = number of children in premium/intl school (school cost multiplier)
-// familySize = total people in household (travel + groceries scale with this)
+// kidsPremium = children in premium/international school (full school cost)
+// kidsLocal   = children in local/CBSE school (~25% of premium school cost)
+// familySize  = total people in household (travel + groceries scale with this)
 // Baseline assumes family of 4. Travel scales sub-linearly because hotel rooms
-// and transport have shared costs. Groceries scale linearly because food is per-person.
+// have shared costs. Groceries scale linearly because food is per-person.
 // =====================================================================
-function computeCity(city, tier, kids, familySize) {
+const LOCAL_SCHOOL_RATIO = 0.25; // local CBSE+ schools cost ~25% of premium intl
+
+function computeCity(city, tier, kidsPremium, familySize, kidsLocal) {
   const m = TIER_MULT[tier];
   const c = city.costs;
   const baseFamily = 4;
-  const travelFamilyFactor = Math.pow(familySize / baseFamily, 0.7);
+  // Travel scales with family — 0.8 factor (flights ~linear, hotels sub-linear)
+  const travelFamilyFactor = Math.pow(familySize / baseFamily, 0.8);
   const groceryFamilyFactor = familySize / baseFamily;
+  const localKids = kidsLocal || 0;
+
+  const premiumSchoolPerKid = c.school * m.school;
+  const localSchoolPerKid = c.school * m.school * LOCAL_SCHOOL_RATIO;
+  const totalSchoolAnnual = premiumSchoolPerKid * kidsPremium + localSchoolPerKid * localKids;
 
   const monthly = {
     rent:      c.rent * m.rent,
@@ -824,7 +859,7 @@ function computeCity(city, tier, kids, familySize) {
     groceries: c.groceries * m.groceries * groceryFamilyFactor,
     utilities: c.utilities * m.utilities,
     misc:      c.misc * m.misc,
-    school:    (c.school * m.school * kids) / 12,
+    school:    totalSchoolAnnual / 12,
     travel:    (c.travel * m.travel * travelFamilyFactor) / 12
   };
   const total = Object.values(monthly).reduce((a, b) => a + b, 0);
@@ -834,7 +869,8 @@ function computeCity(city, tier, kids, familySize) {
     monthly,
     total,
     travel_annual: c.travel * m.travel * travelFamilyFactor,
-    school_annual_per_kid: c.school * m.school
+    school_annual_per_kid: premiumSchoolPerKid,
+    school_local_per_kid: localSchoolPerKid
   };
 }
 
@@ -882,6 +918,7 @@ const defaultState = {
   tier: 'comfortable',
   filter: 'all',
   kids: 2,
+  kidsLocal: 0,
   family: 4,
   sortKey: 'total',
   sortAsc: false,
@@ -892,7 +929,7 @@ let state = { ...defaultState };
 try {
   const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
   // Only restore safe keys, leave expanded reset on load
-  ['tier', 'filter', 'kids', 'family', 'sortKey', 'sortAsc'].forEach(k => {
+  ['tier', 'filter', 'kids', 'kidsLocal', 'family', 'sortKey', 'sortAsc'].forEach(k => {
     if (saved[k] !== undefined) state[k] = saved[k];
   });
 } catch (e) {}
@@ -905,7 +942,7 @@ function persist() {
 }
 
 function getCities() {
-  let arr = CITIES.map(c => computeCity(c, state.tier, state.kids, state.family));
+  let arr = CITIES.map(c => computeCity(c, state.tier, state.kids, state.family, state.kidsLocal));
   if (state.filter !== 'all') arr = arr.filter(c => c.tier == state.filter);
   arr.sort((a, b) => {
     let va, vb;
@@ -996,7 +1033,11 @@ function renderDetailRow(c) {
   `;
 
   const citySlug = c.name.toLowerCase().replace(/\s+/g, '-');
-  const calcURL = `${CALCULATOR_URL}?city=${encodeURIComponent(citySlug)}&tier=${state.tier}&kids=${state.kids}&family=${state.family}`;
+  const calcURL = `${CALCULATOR_URL}?city=${encodeURIComponent(citySlug)}&tier=${state.tier}&kids=${state.kids}&kidsLocal=${state.kidsLocal}&family=${state.family}`;
+
+  const schoolLabel = state.kidsLocal > 0
+    ? `School (${state.kids}P + ${state.kidsLocal}L)`
+    : `School (${state.kids} kid${state.kids === 1 ? '' : 's'})`;
 
   return `
     <tr class="detail-row">
@@ -1010,13 +1051,13 @@ function renderDetailRow(c) {
             <div class="detail-fact"><strong>Schools:</strong> ${c.schools}</div>
             <div class="detail-fact"><strong>Note:</strong> ${c.notes}</div>
             <div class="detail-fact" style="margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px dashed var(--border);">
-              <strong>Annual burn:</strong> ${fmtINR(c.total * 12)} · <strong>School/kid:</strong> ${fmtINR(c.school_annual_per_kid)}/yr
+              <strong>Annual burn:</strong> ${fmtINR(c.total * 12)} · <strong>Premium school/kid:</strong> ${fmtINR(c.school_annual_per_kid)}/yr · <strong>Local:</strong> ${fmtINR(c.school_local_per_kid)}/yr
             </div>
             <a class="detail-cta" href="${calcURL}">Open the corpus calculator for ${c.name}</a>
           </div>
           <div class="detail-bars">
             ${bar('Rent', m.rent)}
-            ${bar(`School (${state.kids} kid${state.kids === 1 ? '' : 's'})`, m.school)}
+            ${bar(schoolLabel, m.school)}
             ${bar('Help', m.help)}
             ${bar(`Groceries (${state.family} ppl)`, m.groceries)}
             ${bar('Utilities', m.utilities)}
@@ -1135,8 +1176,11 @@ function renderAll() {
   renderInsights();
   renderChart();
   renderSetupCosts();
+  const kidsDesc = state.kidsLocal > 0
+    ? `${state.kids} premium + ${state.kidsLocal} local`
+    : `${state.kids} premium-school kid${state.kids === 1 ? '' : 's'}`;
   document.getElementById('table-meta').textContent =
-    `${TIER_LABELS[state.tier]} · family of ${state.family} · ${state.kids} premium-school kid${state.kids === 1 ? '' : 's'}`;
+    `${TIER_LABELS[state.tier]} · family of ${state.family} · ${kidsDesc}`;
 }
 
 function syncControlsFromState() {
@@ -1148,6 +1192,8 @@ function syncControlsFromState() {
   });
   document.getElementById('kids').value = state.kids;
   document.getElementById('kids-count').textContent = state.kids;
+  document.getElementById('kids-local').value = state.kidsLocal;
+  document.getElementById('kids-local-count').textContent = state.kidsLocal;
   document.getElementById('family').value = state.family;
   document.getElementById('family-count').textContent = state.family;
 }
@@ -1173,6 +1219,13 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 document.getElementById('kids').addEventListener('input', e => {
   state.kids = parseInt(e.target.value) || 0;
   document.getElementById('kids-count').textContent = state.kids;
+  persist();
+  renderAll();
+});
+
+document.getElementById('kids-local').addEventListener('input', e => {
+  state.kidsLocal = parseInt(e.target.value) || 0;
+  document.getElementById('kids-local-count').textContent = state.kidsLocal;
   persist();
   renderAll();
 });
